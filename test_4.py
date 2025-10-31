@@ -82,7 +82,7 @@ def main():
 		if not candlesticks:
 			continue
 		
-		if has_price_above_threshold_for_duration(candlesticks, threshold=0.8, min_duration_days=7):
+		if has_price_above_threshold_for_duration(candlesticks, threshold=0.95, min_duration_days=7):
 			filtered_markets.append(market)
 			print(f"[{i}/{len(markets)}] ✓ {ticker}: price >= 80% for >= 7 days")
 		else:
