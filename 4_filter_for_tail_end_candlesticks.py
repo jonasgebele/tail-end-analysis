@@ -106,3 +106,5 @@ def main():
 
 if __name__ == "__main__":
 	main()
+
+# TODO: Now we only look at YES markets. But we want to look als at markets with yes with lower than 0.05 etc.
