@@ -74,7 +74,7 @@ def main():
 		return
 	
 	# Filter markets: price >= threshold for the last N days
-	THRESHOLD = 0.95  # 95%
+	THRESHOLD = 0.94  # 95%
 	MIN_DURATION_DAYS = 7  # Last 7 days
 	
 	filtered_markets = []

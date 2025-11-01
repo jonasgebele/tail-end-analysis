@@ -79,11 +79,11 @@ def main():
 	
 	# Fetch 10k closed markets and write in batches
 	print("Fetching closed markets...")
-	closed_markets = fetch_markets_by_status("closed", max_markets=10000, collection=col, batch_size=1000)
+	closed_markets = fetch_markets_by_status("closed", max_markets=100000, collection=col, batch_size=1000)
 	
 	# Fetch 10k settled markets and write in batches
 	print("\nFetching settled markets...")
-	settled_markets = fetch_markets_by_status("settled", max_markets=10000, collection=col, batch_size=1000)
+	settled_markets = fetch_markets_by_status("settled", max_markets=100000, collection=col, batch_size=1000)
 	
 	# Combine both for final count
 	all_markets = closed_markets + settled_markets

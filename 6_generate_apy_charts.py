@@ -147,10 +147,9 @@ def plot_apy(market, save_path=None):
 		print(f"No valid timestamps found for {ticker}")
 		return
 	
-	# Calculate APY for all three price types
+	# Calculate APY for close and ask price types
 	apy_times_close, apy_values_close = calculate_apy_over_time(market, price_type='close')
 	apy_times_ask, apy_values_ask = calculate_apy_over_time(market, price_type='yes_ask')
-	apy_times_bid, apy_values_bid = calculate_apy_over_time(market, price_type='yes_bid')
 	
 	# Create figure with two subplots stacked vertically
 	fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
@@ -176,15 +175,12 @@ def plot_apy(market, save_path=None):
 	ax1.grid(True, alpha=0.3)
 	ax1.legend()
 	
-	# Bottom subplot: APY over time (3 lines)
+	# Bottom subplot: APY over time (2 lines)
 	if apy_times_close and apy_values_close:
 		ax2.plot(apy_times_close, apy_values_close, label="APY (Close)", linewidth=1.5, alpha=0.8, color='steelblue')
 	
 	if apy_times_ask and apy_values_ask:
 		ax2.plot(apy_times_ask, apy_values_ask, label="APY (Yes Ask)", linewidth=1.5, alpha=0.8, color='green', linestyle='--')
-	
-	if apy_times_bid and apy_values_bid:
-		ax2.plot(apy_times_bid, apy_values_bid, label="APY (Yes Bid)", linewidth=1.5, alpha=0.8, color='red', linestyle=':')
 	
 	ax2.legend()
 	
@@ -216,22 +212,58 @@ def plot_all_apy_summary(markets, save_path=None):
 	"""Create a summary plot showing APY over time for all markets"""
 	fig, ax = plt.subplots(figsize=(14, 8))
 	
+	# Collect all market APY data (using ask price)
+	market_data = []
 	valid_count = 0
 	for market in markets:
 		ticker = market.get("ticker", "Unknown")
-		times, apy_values = calculate_apy_over_time(market, price_type='close')
+		times, apy_values = calculate_apy_over_time(market, price_type='yes_ask')
 		
 		if times is not None and apy_values is not None:
 			ax.plot(times, apy_values, alpha=0.5, linewidth=1, label=ticker)
+			market_data.append((times, apy_values))
 			valid_count += 1
 	
 	if valid_count == 0:
 		print("No valid APY data to plot")
 		return
 	
+	# Calculate lowest market APY at each time point
+	# Collect all unique timestamps
+	all_timestamps = set()
+	for times, _ in market_data:
+		all_timestamps.update(times)
+	
+	all_timestamps = sorted(all_timestamps)
+	
+	# For each timestamp, collect APY values from all markets that have data at that time
+	lowest_market_times = []
+	lowest_market_values = []
+	
+	for ts in all_timestamps:
+		apy_at_ts = []
+		for times, apy_values in market_data:
+			# Find the closest timestamp in this market's data
+			if ts in times:
+				idx = times.index(ts)
+				apy_at_ts.append(apy_values[idx])
+		
+		if len(apy_at_ts) >= 1:
+			# Take the lowest value
+			lowest_apy = min(apy_at_ts)
+			lowest_market_times.append(ts)
+			lowest_market_values.append(lowest_apy)
+	
+	# Plot the lowest market line (bolder)
+	lowest_line = None
+	if lowest_market_times and lowest_market_values:
+		lowest_line, = ax.plot(lowest_market_times, lowest_market_values, 
+				label="Lowest Market", 
+				linewidth=3, alpha=0.9, color='darkred', linestyle='-')
+	
 	ax.set_xlabel("Time", fontsize=12)
 	ax.set_ylabel("APY (%)", fontsize=12)
-	ax.set_title("APY Over Time for All Markets\n(Assuming resolution at $1.00)", 
+	ax.set_title("APY Over Time for All Markets (Ask Price)\n(Assuming resolution at $1.00)", 
 				 fontsize=14, fontweight="bold")
 	ax.set_ylim(0, 100)  # Focus on 0-100% APY region
 	ax.grid(True, alpha=0.3)
@@ -245,8 +277,13 @@ def plot_all_apy_summary(markets, save_path=None):
 	ax.axhline(y=0, color='black', linestyle='--', linewidth=0.5, alpha=0.5)
 	
 	# Don't show legend if too many markets (would be cluttered)
+	# But always show the lowest market line legend
 	if valid_count <= 10:
 		ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+	elif lowest_line is not None:
+		# Show only the lowest market line legend if too many markets
+		ax.legend(handles=[lowest_line], labels=["Lowest Market"], 
+				 bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=10)
 	
 	plt.tight_layout()
 	
