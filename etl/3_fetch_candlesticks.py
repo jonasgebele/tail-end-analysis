@@ -176,7 +176,7 @@ def main():
 	db = client["tail-end-analysis"]
 	
 	# Read all markets from step_2
-	step_2_col = db["step_2"]
+	step_2_col = db["step_22"]
 	markets = list(step_2_col.find())
 	print(f"Found {len(markets)} markets in step_2")
 	print(f"Configuration:")
@@ -190,7 +190,7 @@ def main():
 		return
 	
 	# Store candlesticks in step_3
-	step_3_col = db["step_3"]
+	step_3_col = db["step_33"]
 	
 	success_count = 0
 	skip_count = 0
